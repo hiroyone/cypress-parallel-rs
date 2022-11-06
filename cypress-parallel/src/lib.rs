@@ -4,7 +4,7 @@ use std::{path::{Path, PathBuf}, fs, io};
 ///
 /// # Errors
 ///
-/// This function will return an error if .
+/// This function will return an error if the passed-in directory does not exist.
 fn get_file_paths_by_dir_path (dir_path:&Path) -> Result<Vec<PathBuf>, io::Error>{
     let mut entries = fs::read_dir(".")?
         .map(|res| res.map(|e| e.path()))
