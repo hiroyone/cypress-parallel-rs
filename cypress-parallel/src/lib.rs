@@ -102,7 +102,7 @@ pub fn distribute_tests_by_weight(test_suite_paths: &TestSuitePaths) -> Result<O
 /// # Panics
 ///
 /// Panics if "threadCount" attribute does not exist in the config file.
-pub fn destribute_tests_by_threads(ordered_test_dist: OrderedTestDist) -> Threads {
+pub fn distribute_tests_by_threads(ordered_test_dist: OrderedTestDist) -> Threads {
     
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
