@@ -45,9 +45,9 @@ pub fn get_file_paths_by_glob(pattern:&str) -> Result<TestSuitePaths, PatternErr
 ///
 /// This function will return an error if the given path does not exist.
 pub fn get_test_suites_paths()-> Result<Vec<PathBuf>, PatternError> {
-    let mut settings: HashMap<&str, &str> = HashMap::new();
+
     // Todo: Rewrite this once config part is implemented.
-    settings.insert("test_suites_path", "");
+    let settings: HashMap<&str, &str> = HashMap::new();
     
     println!("Using pattern {} to find test suites", settings["test_suites_path"]);
     let file_list = get_file_paths_by_glob(settings["test_suites_path"])?;
@@ -81,8 +81,8 @@ pub fn distribute_tests_by_weight(test_suite_paths: &TestSuitePaths) -> Result<O
     let spec_weights:HashMap<&str, i32> = serde_json::from_str(&spec_weights_json)?;
 
     // Create an ordered map for weights and test paths passed from the JSON file
-    let mut ordered_test_dist = BTreeMap::new();
-    test_suite_paths.into_iter().for_each(|file_path| {
+    let mut ordered_test_dist: BTreeMap<i32, &PathBuf> = BTreeMap::new();
+    test_suite_paths.into_iter().for_each(|file_path: &PathBuf| {
         let mut spec_weight:i32 = settings["defaultWeight"].parse().unwrap();
         for spec_path in spec_weights.keys() {
             if file_path.ends_with(spec_path) {
@@ -107,7 +107,7 @@ pub fn distribute_tests_by_threads(ordered_test_dist: OrderedTestDist) -> Thread
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
 
-    let mut threads=Vec::new();
+    let mut threads: Vec<Thread>=Vec::new();
     let thread_count = settings["threadCount"].parse().unwrap();
 
     for _ in 0..thread_count {
