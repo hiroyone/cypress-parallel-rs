@@ -2,4 +2,5 @@
 
 members = [
     "cypress-parallel",
+    "threads"
 ]
