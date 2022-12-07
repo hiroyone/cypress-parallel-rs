@@ -4,7 +4,11 @@ use glob::{PatternError};
 
 type TestSuitePaths = Vec<PathBuf>;
 
-pub struct Thread<'a>(Vec<&'a PathBuf>, i32);
+pub struct Thread<'a> {
+    pub paths: Vec<&'a PathBuf>, 
+    pub weight: i32
+}
+
 pub type Threads<'a> = Vec<Thread<'a>>;
 
 type OrderedTestDist<'a> = BTreeMap<i32, &'a PathBuf>;
@@ -111,13 +115,16 @@ pub fn distribute_tests_by_threads(ordered_test_dist: OrderedTestDist) -> Thread
     let thread_count = settings["threadCount"].parse().unwrap();
 
     for _ in 0..thread_count {
-        threads.push(Thread(Vec::new(),0))
+        threads.push(Thread {
+            paths: Vec::new(),
+            weight: 0
+        })
     }
 
     for (key, value) in ordered_test_dist.into_iter() {
-        threads.sort_by(|a, b| a.1.cmp(&b.1));
-        threads[0].0.push(value);
-        threads[0].1 += key;
+        threads.sort_by(|a, b| a.weight.cmp(&b.weight));
+        threads[0].paths.push(value);
+        threads[0].weight += key;
         }
     return threads
 }
