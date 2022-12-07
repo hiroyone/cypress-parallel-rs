@@ -1,6 +1,6 @@
 [workspace]
 
 members = [
-    "cypress-parallel",
+    "cypress_parallel",
     "threads"
 ]

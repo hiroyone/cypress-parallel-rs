@@ -5,7 +5,7 @@ use glob::{PatternError};
 type TestSuitePaths = Vec<PathBuf>;
 
 pub struct Thread<'a>(Vec<&'a PathBuf>, i32);
-type Threads<'a> = Vec<Thread<'a>>;
+pub type Threads<'a> = Vec<Thread<'a>>;
 
 type OrderedTestDist<'a> = BTreeMap<i32, &'a PathBuf>;
 
