@@ -68,6 +68,15 @@ fn create_reporter_config_file(path:&PathBuf) -> Result<()> {
 }
 
 
+/// Create command arguments based on spec files and the config
+///
+/// # Panics
+///
+/// Panics if it fails to create a report config file
+///
+/// # Errors
+///
+/// This function will return an error if the current directory is not found.
 pub fn create_command_arguments(thread:Thread) -> Result<Vec<String>, > {
 
     // Todo: Rewrite this once config part is implemented.
