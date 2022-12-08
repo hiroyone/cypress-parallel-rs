@@ -4,14 +4,14 @@ use glob::{PatternError};
 
 type TestSuitePaths = Vec<PathBuf>;
 
-pub struct Thread<'a> {
-    pub paths: Vec<&'a PathBuf>, 
+pub struct Thread {
+    pub paths: Vec<PathBuf>, 
     pub weight: i32
 }
 
-pub type Threads<'a> = Vec<Thread<'a>>;
+pub type Threads = Vec<Thread>;
 
-type OrderedTestDist<'a> = BTreeMap<i32, &'a PathBuf>;
+type OrderedTestDist = BTreeMap<i32, PathBuf>;
 
 /// Get a list of file paths under the directory
 ///
@@ -75,7 +75,7 @@ pub fn get_test_suites_paths()-> Result<Vec<PathBuf>, PatternError> {
 /// # Errors
 ///
 /// This function will return an error if "weights_json" attribute does not exist in the config file.
-pub fn distribute_tests_by_weight(test_suite_paths: &TestSuitePaths) -> Result<OrderedTestDist, std::io::Error> {
+pub fn distribute_tests_by_weight(test_suite_paths: TestSuitePaths) -> Result<OrderedTestDist, std::io::Error> {
     
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
@@ -85,8 +85,8 @@ pub fn distribute_tests_by_weight(test_suite_paths: &TestSuitePaths) -> Result<O
     let spec_weights:HashMap<&str, i32> = serde_json::from_str(&spec_weights_json)?;
 
     // Create an ordered map for weights and test paths passed from the JSON file
-    let mut ordered_test_dist: BTreeMap<i32, &PathBuf> = BTreeMap::new();
-    test_suite_paths.into_iter().for_each(|file_path: &PathBuf| {
+    let mut ordered_test_dist: BTreeMap<i32, PathBuf> = BTreeMap::new();
+    test_suite_paths.into_iter().for_each(|file_path: PathBuf| {
         let mut spec_weight:i32 = settings["defaultWeight"].parse().unwrap();
         for spec_path in spec_weights.keys() {
             if file_path.ends_with(spec_path) {
