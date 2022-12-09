@@ -144,13 +144,11 @@ fn create_command_arguments(thread:Thread) -> Result<Vec<String>, > {
 /// Panics if the function failed to create a command argument.
 pub async fn execute_thread(thread:Thread, index:u64) -> ExitStatus {
     let package_manager = get_package_manager();
-    let command_arguments = create_command_arguments(thread).unwrap_or_else(|err| panic!("Failed to create a command argument: {}", err))
+    let command_arguments = create_command_arguments(thread).unwrap_or_else(|err| panic!("Failed to create a command argument: {}", err));
     
     let ten_millis = time::Duration::from_millis(index);
     
     sleep(ten_millis).await;
-
-    let time_map:HashMap<&str, &str> = HashMap::new();
 
     let cmd = Command::new(package_manager.to_string())
                                     .args(command_arguments)
