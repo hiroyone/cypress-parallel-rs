@@ -3,6 +3,7 @@ use std::time::{Duration, Instant};
 use serde_json::{Map, Value, Number};
 
 
+/// Create a clean statistics from the base statistics 
 fn clean_statistics() -> Map<String, Value> {
 
     // Todo: configure stats
@@ -16,7 +17,7 @@ fn clean_statistics() -> Map<String, Value> {
     let file = String::new();
 
     stats.insert("duration".to_owned(), 
-                            Value::Number(Number::from(end.duration_since(start).as_secs())));
+                Value::Number(Number::from(end.duration_since(start).as_secs())));
     stats.insert("file".to_owned(), Value::String(file));
 
     stats
