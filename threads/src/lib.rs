@@ -1,10 +1,20 @@
-use std::{collections::HashMap, path::{PathBuf, Path}, fs, io::Result, env};
+use std::{collections::HashMap, path::{PathBuf, Path}, fs, io::Result, env, time, fmt, process::{Stdio, ExitStatus}};
 
 use convert_case::{Casing, Case};
 use cypress_parallel::Thread;
+use tokio::{time::sleep, process::Command};
 pub enum PackageManager {
     Yarn,
     Npm
+}
+
+impl fmt::Display for PackageManager {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            PackageManager::Yarn => write!(f, "yarn"),
+            PackageManager::Npm => write!(f, "npm"),
+        }
+    }
 }
 
 /// Return yarn or npm which a user depends on.
@@ -77,7 +87,7 @@ fn create_reporter_config_file(path:&PathBuf) -> Result<()> {
 /// # Errors
 ///
 /// This function will return an error if the current directory is not found.
-pub fn create_command_arguments(thread:Thread) -> Result<Vec<String>, > {
+fn create_command_arguments(thread:Thread) -> Result<Vec<String>, > {
 
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
@@ -125,4 +135,33 @@ pub fn create_command_arguments(thread:Thread) -> Result<Vec<String>, > {
     child_options.append(&mut Vec::from([settings["scriptArguments"].to_string()]));
 
     Ok(child_options)
+}
+
+/// Execute test files asynchronously 
+///
+/// # Panics
+///
+/// Panics if the function failed to create a command argument.
+pub async fn execute_thread(thread:Thread, index:u64) -> ExitStatus {
+    let package_manager = get_package_manager();
+    let command_arguments = create_command_arguments(thread).unwrap_or_else(|err| panic!("Failed to create a command argument: {}", err))
+    
+    let ten_millis = time::Duration::from_millis(index);
+    
+    sleep(ten_millis).await;
+
+    let time_map:HashMap<&str, &str> = HashMap::new();
+
+    let cmd = Command::new(package_manager.to_string())
+                                    .args(command_arguments)
+                                    .stdin(Stdio::inherit())
+                                    .stdout(Stdio::inherit())
+                                    .spawn()
+                                    .expect("failed to start the process")
+                                    .wait()
+                                    .await
+                                    .expect("failed to finish the process");
+
+    // Todo: display an error detail if exit_status > 0  
+    cmd
 }
