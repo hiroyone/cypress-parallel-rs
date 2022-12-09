@@ -2,5 +2,6 @@
 
 members = [
     "cypress_parallel",
-    "threads"
+    "threads",
+    "reports"
 ]
