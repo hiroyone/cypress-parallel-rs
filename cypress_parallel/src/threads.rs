@@ -1,7 +1,7 @@
 use std::{collections::HashMap, path::{PathBuf, Path}, fs, io::Result, env, time, fmt, process::{Stdio, ExitStatus}};
 
 use convert_case::{Casing, Case};
-use cypress_parallel::Thread;
+use crate::test_suite::Thread;
 use tokio::{time::sleep, process::Command};
 pub enum PackageManager {
     Yarn,

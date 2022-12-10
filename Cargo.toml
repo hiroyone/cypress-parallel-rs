@@ -1,7 +1,5 @@
 [workspace]
 
 members = [
-    "cypress_parallel",
-    "threads",
-    "reports"
+    "cypress_parallel"
 ]
