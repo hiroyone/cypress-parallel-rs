@@ -6,7 +6,7 @@ use std::{path::{Path, PathBuf}, fs, io::Result, process, time::Duration, collec
 ///
 /// This function will return an error if the directory operation fails.
 fn clean_directory(dir_path:&Path) -> Result<()> {    
-    if Path::new(&dir_path).is_dir() {
+    if dir_path.is_dir() {
         println!("The directory {:?} already exists!", dir_path);
         fs::remove_dir_all(&dir_path)?;
         fs::create_dir_all(dir_path)?;
