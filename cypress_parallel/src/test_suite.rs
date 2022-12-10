@@ -1,16 +1,9 @@
 use core::str;
 use std::{path::{Path, PathBuf}, fs, io, collections::{HashMap, BTreeMap}};
 use glob::{PatternError};
+use crate::threads::Thread;
 
 type TestSuitePaths = Vec<PathBuf>;
-
-pub struct Thread {
-    pub paths: Vec<PathBuf>, 
-    pub weight: i32
-}
-
-pub type Threads = Vec<Thread>;
-
 type OrderedTestDist = BTreeMap<i32, PathBuf>;
 
 /// Get a list of file paths under the directory
@@ -19,7 +12,7 @@ type OrderedTestDist = BTreeMap<i32, PathBuf>;
 ///
 /// This function will return an error if the passed-in directory does not exist.
 #[allow(dead_code)]
-pub fn get_file_paths_by_dir_path (dir_path:&Path) -> Result<Vec<PathBuf>, io::Error>{
+fn get_file_paths_by_dir_path (dir_path:&Path) -> Result<Vec<PathBuf>, io::Error>{
     let mut entries = fs::read_dir(dir_path)?
         .map(|res| res.map(|e| e.path()))
         .collect::<Result<Vec<_>, io::Error>>()?;
@@ -33,7 +26,7 @@ pub fn get_file_paths_by_dir_path (dir_path:&Path) -> Result<Vec<PathBuf>, io::E
 /// # Errors
 ///
 /// This function will return an error if the given path does not exist.
-pub fn get_file_paths_by_glob(pattern:&str) -> Result<TestSuitePaths, PatternError>{
+fn get_file_paths_by_glob(pattern:&str) -> Result<TestSuitePaths, PatternError>{
 
     let mut entries = glob::glob(pattern).expect("Failed to read glob pattern")
         .filter_map(Result::ok)
@@ -49,7 +42,7 @@ pub fn get_file_paths_by_glob(pattern:&str) -> Result<TestSuitePaths, PatternErr
 /// # Errors
 ///
 /// This function will return an error if the given path does not exist.
-pub fn get_test_suites_paths()-> Result<Vec<PathBuf>, PatternError> {
+fn get_test_suites_paths()-> Result<Vec<PathBuf>, PatternError> {
 
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
@@ -76,7 +69,7 @@ pub fn get_test_suites_paths()-> Result<Vec<PathBuf>, PatternError> {
 /// # Errors
 ///
 /// This function will return an error if "weights_json" attribute does not exist in the config file.
-pub fn distribute_tests_by_weight(test_suite_paths: TestSuitePaths) -> Result<OrderedTestDist, std::io::Error> {
+fn distribute_tests_by_weight(test_suite_paths: TestSuitePaths) -> Result<OrderedTestDist, std::io::Error> {
     
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
@@ -107,7 +100,7 @@ pub fn distribute_tests_by_weight(test_suite_paths: TestSuitePaths) -> Result<Or
 /// # Panics
 ///
 /// Panics if "threadCount" attribute does not exist in the config file.
-pub fn distribute_tests_by_threads(ordered_test_dist: OrderedTestDist) -> Threads {
+fn distribute_tests_by_threads(ordered_test_dist: OrderedTestDist) -> Vec<Thread> {
     
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();

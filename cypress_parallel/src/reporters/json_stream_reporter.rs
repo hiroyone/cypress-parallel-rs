@@ -1,7 +1,7 @@
 use std::{time::{Duration, Instant}, path::Path, fs, io::Error};
 
 use regex::Regex;
-use serde_json::{Map, Value, Number, json, to_string_pretty};
+use serde_json::{Map, Value, Number, to_string_pretty};
 
 type Statistics = Map<String, Value>;
 
@@ -54,7 +54,7 @@ fn write_stats_file(statistics:Statistics, result_path:&Path) -> Result<(), Erro
     fs::write(spec_result_path,  stats_json)
 }
 
-pub fn json_stream_custom() {
+ fn json_stream_custom() {
     // Todo: configure variables
     let statistics = Statistics::new();
     let result_path = Path::new("todo");

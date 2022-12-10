@@ -1,9 +1,14 @@
 use std::{collections::HashMap, path::{PathBuf, Path}, fs, io::Result, env, time, fmt, process::{Stdio, ExitStatus}};
 
 use convert_case::{Casing, Case};
-use crate::test_suite::Thread;
 use tokio::{time::sleep, process::Command};
-pub enum PackageManager {
+
+pub struct Thread {
+    pub paths: Vec<PathBuf>, 
+    pub weight: i32
+}
+
+enum PackageManager {
     Yarn,
     Npm
 }
@@ -142,7 +147,7 @@ fn create_command_arguments(thread:Thread) -> Result<Vec<String>, > {
 /// # Panics
 ///
 /// Panics if the function failed to create a command argument.
-pub async fn execute_thread(thread:Thread, index:u64) -> ExitStatus {
+async fn execute_thread(thread:Thread, index:u64) -> ExitStatus {
     let package_manager = get_package_manager();
     let command_arguments = create_command_arguments(thread).unwrap_or_else(|err| panic!("Failed to create a command argument: {}", err));
     
