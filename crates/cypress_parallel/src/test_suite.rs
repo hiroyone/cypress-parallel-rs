@@ -118,7 +118,11 @@ fn distribute_tests_by_threads(ordered_test_dist: OrderedTestDist) -> Vec<Thread
     let settings: HashMap<&str, &str> = HashMap::new();
 
     let mut threads: Vec<Thread> = Vec::new();
-    let thread_count = settings["threadCount"].parse().unwrap();
+    // todo: remove unwrap
+    let thread_count = settings
+        .get("threadCount")
+        .ok_or("threadCount key was not found")
+        .unwrap();
 
     for _ in 0..thread_count {
         threads.push(Thread {

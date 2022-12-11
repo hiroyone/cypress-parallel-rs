@@ -79,13 +79,14 @@ fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
         // Create a camel name + suffix
         option_name.push_str(&settings["reporter"].to_case(Case::Camel));
         option_name.push_str("ReporterOptions");
+        let option_name = create_reporter_options(settings["reporterOptions"]);
     }
 
     fs::write(
         path,
         serde_json::json!({
             "reporterEnabled": reporter_enabled.join(","),
-            option_name: create_reporter_options(settings["reporterOptions"])
+            option_name: option_name
         })
         .to_string(),
     )
