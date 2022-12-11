@@ -1,5 +1,5 @@
 use core::str;
-use std::{path::{Path, PathBuf}, fs, io, collections::{HashMap, BTreeMap}};
+use std::{path::{Path, PathBuf}, fs, io, collections::{HashMap, BTreeMap}, error::Error};
 use glob::{PatternError};
 use crate::threads::Thread;
 
@@ -28,27 +28,28 @@ fn get_file_paths_by_dir_path (dir_path:&Path) -> Result<Vec<PathBuf>, io::Error
 /// This function will return an error if the given path does not exist.
 fn get_file_paths_by_glob(pattern:&str) -> Result<TestSuitesPaths, PatternError>{
 
-    let mut entries = glob::glob(pattern).expect("Failed to read glob pattern")
+    let mut entries = glob::glob(pattern)?
         .filter_map(Result::ok)
         .collect::<Vec<PathBuf>>();
 
     entries.sort();
     return Ok(entries)
-
 }
 
-/// Get a list of test suites paths for a given test_suites_path passed in to an argument
+/// Get a list of test suites path for a given test_suites_path passed in to an argument
 ///
 /// # Errors
 ///
 /// This function will return an error if the given path does not exist.
-pub fn get_test_suites_paths()-> Result<Vec<PathBuf>, PatternError> {
+pub fn get_test_suites_path()-> Result<Vec<PathBuf>, Box<dyn Error>> {
 
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
     
-    println!("Using pattern {} to find test suites", settings["test_suites_path"]);
-    let file_list = get_file_paths_by_glob(settings["test_suites_path"])?;
+    let test_suites_path = settings.get("test_suites_path").ok_or("test_suites_path key was not found.")?;
+    
+    println!("Using pattern {} to find test suites", test_suites_path);
+    let file_list = get_file_paths_by_glob(test_suites_path)?;
 
     let file_len =  file_list.len();
     println!("{} test suites were found", file_len); 
