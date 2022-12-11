@@ -44,7 +44,7 @@ fn write_stats_file(statistics:Statistics, result_path:&Path) -> Result<(), Erro
     let file_name = re.replace_all(file_name, "_");
     let file_name = format!("{}.json", file_name); 
 
-    if result_path.is_dir() {
+    if !result_path.is_dir() {
         fs::create_dir_all(result_path)?;
     } 
 
