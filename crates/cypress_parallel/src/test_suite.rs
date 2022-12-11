@@ -8,7 +8,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-type TestSuitesPaths = Vec<PathBuf>;
+type TestSuitesPath = Vec<PathBuf>;
 type OrderedTestDist = BTreeMap<i32, PathBuf>;
 
 /// Get a list of file paths under the directory
@@ -31,7 +31,7 @@ fn get_file_paths_by_dir_path(dir_path: &Path) -> Result<Vec<PathBuf>, io::Error
 /// # Errors
 ///
 /// This function will return an error if the given path does not exist.
-fn get_file_paths_by_glob(pattern: &str) -> Result<TestSuitesPaths, PatternError> {
+fn get_file_paths_by_glob(pattern: &str) -> Result<TestSuitesPath, PatternError> {
     let mut entries = glob::glob(pattern)?
         .filter_map(Result::ok)
         .collect::<Vec<PathBuf>>();
@@ -76,7 +76,7 @@ pub fn get_test_suites_path() -> Result<Vec<PathBuf>, Box<dyn Error>> {
 ///
 /// This function will return an error if "weightsJSON" attribute does not exist in the config file.
 pub fn distribute_tests_by_weight(
-    test_suites_path: TestSuitesPaths,
+    test_suites_path: TestSuitesPath,
 ) -> Result<OrderedTestDist, Box<dyn Error>> {
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
@@ -113,16 +113,17 @@ pub fn distribute_tests_by_weight(
 /// # Panics
 ///
 /// Panics if "threadCount" attribute does not exist in the config file.
-fn distribute_tests_by_threads(ordered_test_dist: OrderedTestDist) -> Vec<Thread> {
+pub fn distribute_tests_by_threads(
+    ordered_test_dist: OrderedTestDist,
+) -> Result<Vec<Thread>, Box<dyn Error>> {
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
 
     let mut threads: Vec<Thread> = Vec::new();
-    // todo: remove unwrap
     let thread_count = settings
         .get("threadCount")
-        .ok_or("threadCount key was not found")
-        .unwrap();
+        .ok_or("threadCount key was not found")?
+        .parse()?;
 
     for _ in 0..thread_count {
         threads.push(Thread {
@@ -136,5 +137,12 @@ fn distribute_tests_by_threads(ordered_test_dist: OrderedTestDist) -> Vec<Thread
         threads[0].paths.push(value);
         threads[0].weight += key;
     }
-    return threads;
+    return Ok(threads);
+}
+
+pub fn get_test_weight_threads() -> Result<Vec<Thread>, Box<dyn Error>> {
+    let test_suites_path = get_test_suites_path()?;
+    let test_weight_map = distribute_tests_by_weight(test_suites_path)?;
+    let threads = distribute_tests_by_threads(test_weight_map)?;
+    Ok(threads)
 }

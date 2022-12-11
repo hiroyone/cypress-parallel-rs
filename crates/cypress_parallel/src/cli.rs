@@ -7,8 +7,7 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
     let dir_path = Path::new("sample_dir");
     clean_directory(dir_path)?;
 
-    let test_suites_path = test_suite::get_test_suites_path()?;
-    let threads = test_suite::distribute_tests_by_weight(test_suites_path)?;
+    let test_weight_threads = test_suite::get_test_weight_threads()?;
 
     Ok(())
 }

@@ -75,18 +75,19 @@ fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
     }
 
     let mut option_name = String::new();
+    let mut reporter_options = HashMap::new();
     if settings.contains_key("reporterOptions") {
         // Create a camel name + suffix
         option_name.push_str(&settings["reporter"].to_case(Case::Camel));
         option_name.push_str("ReporterOptions");
-        let option_name = create_reporter_options(settings["reporterOptions"]);
+        reporter_options = create_reporter_options(settings["reporterOptions"]);
     }
 
     fs::write(
         path,
         serde_json::json!({
             "reporterEnabled": reporter_enabled.join(","),
-            option_name: option_name
+            option_name: reporter_options
         })
         .to_string(),
     )
