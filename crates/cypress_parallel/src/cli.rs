@@ -1,4 +1,4 @@
-use crate::test_suite;
+use crate::test_suites;
 use crate::utility::clean_directory;
 use std::{error::Error, path::Path};
 
@@ -7,7 +7,7 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
     let dir_path = Path::new("sample_dir");
     clean_directory(dir_path)?;
 
-    let test_weight_threads = test_suite::get_test_weight_threads()?;
+    let test_weight_threads = test_suites::get_test_weight_threads()?;
 
     Ok(())
 }
