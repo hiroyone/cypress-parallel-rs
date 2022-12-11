@@ -69,20 +69,22 @@ pub fn get_test_suites_path()-> Result<Vec<PathBuf>, Box<dyn Error>> {
 ///
 /// # Errors
 ///
-/// This function will return an error if "weights_json" attribute does not exist in the config file.
-fn distribute_tests_by_weight(test_suites_paths: TestSuitesPaths) -> Result<OrderedTestDist, std::io::Error> {
-    
+/// This function will return an error if "weightsJSON" attribute does not exist in the config file.
+pub fn distribute_tests_by_weight(test_suites_path: TestSuitesPaths) -> Result<OrderedTestDist, Box<dyn Error>> {
+
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
+    let weights_json = settings.get("weightsJSON").ok_or("weightsJSON key was not found.")?;
+    let default_weight = settings.get("defaultWeight").ok_or("defaultWeight key was not found.")?.parse::<i32>()?;
 
     // Retrieve execution weights from the config file
-    let spec_weights_json = fs::read_to_string(settings["weights_json"])?;
+    let spec_weights_json = fs::read_to_string(weights_json)?;
     let spec_weights:HashMap<&str, i32> = serde_json::from_str(&spec_weights_json)?;
 
     // Create an ordered map for weights and test paths passed from the JSON file
     let mut ordered_test_dist: BTreeMap<i32, PathBuf> = BTreeMap::new();
-    test_suites_paths.into_iter().for_each(|file_path: PathBuf| {
-        let mut spec_weight:i32 = settings["defaultWeight"].parse().unwrap();
+    test_suites_path.into_iter().for_each(|file_path: PathBuf| {
+        let mut spec_weight = default_weight;
         for spec_path in spec_weights.keys() {
             if file_path.ends_with(spec_path) {
                 spec_weight = spec_weights[spec_path];
