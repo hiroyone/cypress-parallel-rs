@@ -3,7 +3,7 @@ use std::{path::{Path, PathBuf}, fs, io, collections::{HashMap, BTreeMap}};
 use glob::{PatternError};
 use crate::threads::Thread;
 
-type TestSuitePaths = Vec<PathBuf>;
+type TestSuitesPaths = Vec<PathBuf>;
 type OrderedTestDist = BTreeMap<i32, PathBuf>;
 
 /// Get a list of file paths under the directory
@@ -26,7 +26,7 @@ fn get_file_paths_by_dir_path (dir_path:&Path) -> Result<Vec<PathBuf>, io::Error
 /// # Errors
 ///
 /// This function will return an error if the given path does not exist.
-fn get_file_paths_by_glob(pattern:&str) -> Result<TestSuitePaths, PatternError>{
+fn get_file_paths_by_glob(pattern:&str) -> Result<TestSuitesPaths, PatternError>{
 
     let mut entries = glob::glob(pattern).expect("Failed to read glob pattern")
         .filter_map(Result::ok)
@@ -37,12 +37,12 @@ fn get_file_paths_by_glob(pattern:&str) -> Result<TestSuitePaths, PatternError>{
 
 }
 
-/// Get a list of test suite paths for a given test_suites_path passed in to an argument
+/// Get a list of test suites paths for a given test_suites_path passed in to an argument
 ///
 /// # Errors
 ///
 /// This function will return an error if the given path does not exist.
-fn get_test_suites_paths()-> Result<Vec<PathBuf>, PatternError> {
+pub fn get_test_suites_paths()-> Result<Vec<PathBuf>, PatternError> {
 
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
@@ -69,7 +69,7 @@ fn get_test_suites_paths()-> Result<Vec<PathBuf>, PatternError> {
 /// # Errors
 ///
 /// This function will return an error if "weights_json" attribute does not exist in the config file.
-fn distribute_tests_by_weight(test_suite_paths: TestSuitePaths) -> Result<OrderedTestDist, std::io::Error> {
+fn distribute_tests_by_weight(test_suites_paths: TestSuitesPaths) -> Result<OrderedTestDist, std::io::Error> {
     
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
@@ -80,7 +80,7 @@ fn distribute_tests_by_weight(test_suite_paths: TestSuitePaths) -> Result<Ordere
 
     // Create an ordered map for weights and test paths passed from the JSON file
     let mut ordered_test_dist: BTreeMap<i32, PathBuf> = BTreeMap::new();
-    test_suite_paths.into_iter().for_each(|file_path: PathBuf| {
+    test_suites_paths.into_iter().for_each(|file_path: PathBuf| {
         let mut spec_weight:i32 = settings["defaultWeight"].parse().unwrap();
         for spec_path in spec_weights.keys() {
             if file_path.ends_with(spec_path) {
