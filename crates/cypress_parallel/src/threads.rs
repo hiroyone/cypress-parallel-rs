@@ -1,16 +1,23 @@
-use std::{collections::HashMap, path::{PathBuf, Path}, fs, io::Result, env, time, fmt, process::{Stdio, ExitStatus}};
+use std::{
+    collections::HashMap,
+    env, fmt, fs,
+    io::Result,
+    path::{Path, PathBuf},
+    process::{ExitStatus, Stdio},
+    time,
+};
 
-use convert_case::{Casing, Case};
-use tokio::{time::sleep, process::Command};
+use convert_case::{Case, Casing};
+use tokio::{process::Command, time::sleep};
 
 pub struct Thread {
-    pub paths: Vec<PathBuf>, 
-    pub weight: i32
+    pub paths: Vec<PathBuf>,
+    pub weight: i32,
 }
 
 enum PackageManager {
     Yarn,
-    Npm
+    Npm,
 }
 
 impl fmt::Display for PackageManager {
@@ -25,38 +32,37 @@ impl fmt::Display for PackageManager {
 /// Return yarn or npm which a user depends on.
 fn get_package_manager() -> PackageManager {
     // Todo: implement isYarn
-    let is_yarn = true; 
+    let is_yarn = true;
 
     let package_manager;
     if is_yarn {
-        package_manager=PackageManager::Yarn
+        package_manager = PackageManager::Yarn
     } else {
-        package_manager=PackageManager::Npm
+        package_manager = PackageManager::Npm
     }
-    return package_manager
+    return package_manager;
 }
 
 /// Create an option map for the report option string
-fn create_reporter_options(string:&str) -> HashMap<&str, &str> {
-    let options:Vec<&str> = string.split(',').collect();
+fn create_reporter_options(string: &str) -> HashMap<&str, &str> {
+    let options: Vec<&str> = string.split(',').collect();
 
     let mut option_map: HashMap<&str, &str> = HashMap::new();
     for value in options.into_iter() {
         let kv_array: Vec<&str> = value.split("=").collect();
-        let key:&str=kv_array[0].trim();
-        let value:&str=kv_array[1].trim();
+        let key: &str = kv_array[0].trim();
+        let value: &str = kv_array[1].trim();
         option_map.insert(key, value);
     }
     option_map
-} 
+}
 
-/// Write Cypress reporting config to the json file 
+/// Write Cypress reporting config to the json file
 ///
 /// # Errors
 ///
-/// This function will return an error if writing the JSON to the file fails. 
-fn create_reporter_config_file(path:&PathBuf) -> Result<()> {
-    
+/// This function will return an error if writing the JSON to the file fails.
+fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
 
@@ -68,20 +74,22 @@ fn create_reporter_config_file(path:&PathBuf) -> Result<()> {
         reporter_enabled.push("cypress-parallel/simple-spec.reporter.js")
     }
 
-    let mut option_name=String::new();
+    let mut option_name = String::new();
     if settings.contains_key("reporterOptions") {
-        // Create a camel name + suffix 
+        // Create a camel name + suffix
         option_name.push_str(&settings["reporter"].to_case(Case::Camel));
         option_name.push_str("ReporterOptions");
     }
 
-    fs::write(path, serde_json::json!({
-        "reporterEnabled": reporter_enabled.join(","),
-        option_name: create_reporter_options(settings["reporterOptions"])
-    }).to_string())
-
+    fs::write(
+        path,
+        serde_json::json!({
+            "reporterEnabled": reporter_enabled.join(","),
+            option_name: create_reporter_options(settings["reporterOptions"])
+        })
+        .to_string(),
+    )
 }
-
 
 /// Create command arguments based on spec files and the config
 ///
@@ -92,22 +100,26 @@ fn create_reporter_config_file(path:&PathBuf) -> Result<()> {
 /// # Errors
 ///
 /// This function will return an error if the current directory is not found.
-fn create_command_arguments(thread:Thread) -> Result<Vec<String>, > {
-
+fn create_command_arguments(thread: Thread) -> Result<Vec<String>> {
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
 
     let package_variant = match get_package_manager() {
         PackageManager::Npm => "--",
-        PackageManager::Yarn => ""
+        PackageManager::Yarn => "",
     };
 
     // Todo: it is different from the original implementation logic.
-    let mut spec_files = thread.paths.into_iter().map(|path| path.to_string_lossy().to_string())
-                                                            .collect::<Vec<String>>();
+    let mut spec_files = thread
+        .paths
+        .into_iter()
+        .map(|path| path.to_string_lossy().to_string())
+        .collect::<Vec<String>>();
 
-    let mut reporter = Vec::from(["--reporter".to_string(),
-                                                settings["reporterModulePath"].to_string()]);
+    let mut reporter = Vec::from([
+        "--reporter".to_string(),
+        settings["reporterModulePath"].to_string(),
+    ]);
 
     let reporter_config_path;
 
@@ -116,22 +128,27 @@ fn create_command_arguments(thread:Thread) -> Result<Vec<String>, > {
     } else {
         let cwd = env::current_dir()?;
         reporter_config_path = cwd.join("multi-reporter-config.json");
-        
+
         create_reporter_config_file(&reporter_config_path).unwrap_or_else(|err| {
             panic!("Failed to create a report config file: {}", err);
         })
     }
 
-    let reporter_config_path_param = String::from(format!("configFile={}", reporter_config_path.to_str().unwrap()));
+    let reporter_config_path_param = String::from(format!(
+        "configFile={}",
+        reporter_config_path.to_str().unwrap()
+    ));
 
-    let mut reporter_options = Vec::from(["--reporter-options".to_string(), 
-                                                        reporter_config_path_param ]);
-    
-    let mut child_options:Vec<String> = Vec::from(["run".to_string(),
-    settings["script"].to_string(),
-    package_variant.to_string(),
-    "--spec".to_string()]);
-    
+    let mut reporter_options =
+        Vec::from(["--reporter-options".to_string(), reporter_config_path_param]);
+
+    let mut child_options: Vec<String> = Vec::from([
+        "run".to_string(),
+        settings["script"].to_string(),
+        package_variant.to_string(),
+        "--spec".to_string(),
+    ]);
+
     child_options.append(&mut spec_files);
     child_options.append(&mut reporter);
     child_options.append(&mut reporter_options);
@@ -142,29 +159,30 @@ fn create_command_arguments(thread:Thread) -> Result<Vec<String>, > {
     Ok(child_options)
 }
 
-/// Execute test files asynchronously 
+/// Execute test files asynchronously
 ///
 /// # Panics
 ///
 /// Panics if the function failed to create a command argument.
-async fn execute_thread(thread:Thread, index:u64) -> ExitStatus {
+async fn execute_thread(thread: Thread, index: u64) -> ExitStatus {
     let package_manager = get_package_manager();
-    let command_arguments = create_command_arguments(thread).unwrap_or_else(|err| panic!("Failed to create a command argument: {}", err));
-    
+    let command_arguments = create_command_arguments(thread)
+        .unwrap_or_else(|err| panic!("Failed to create a command argument: {}", err));
+
     let ten_millis = time::Duration::from_millis(index);
-    
+
     sleep(ten_millis).await;
 
     let cmd = Command::new(package_manager.to_string())
-                                    .args(command_arguments)
-                                    .stdin(Stdio::inherit())
-                                    .stdout(Stdio::inherit())
-                                    .spawn()
-                                    .expect("failed to start the process")
-                                    .wait()
-                                    .await
-                                    .expect("failed to finish the process");
+        .args(command_arguments)
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .spawn()
+        .expect("failed to start the process")
+        .wait()
+        .await
+        .expect("failed to finish the process");
 
-    // Todo: display an error detail if exit_status > 0  
+    // Todo: display an error detail if exit_status > 0
     cmd
 }

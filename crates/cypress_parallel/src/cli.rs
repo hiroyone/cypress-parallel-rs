@@ -1,9 +1,8 @@
-use std::{path::Path, error::Error};
-use crate::utility::clean_directory;
 use crate::test_suite;
+use crate::utility::clean_directory;
+use std::{error::Error, path::Path};
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
-
     // Todo: configure the proper path
     let dir_path = Path::new("sample_dir");
     clean_directory(dir_path)?;

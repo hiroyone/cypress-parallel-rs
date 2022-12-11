@@ -1,5 +1,5 @@
 pub mod cli;
-mod utility;
+mod reporters;
 mod test_suite;
 mod threads;
-mod reporters;
+mod utility;
