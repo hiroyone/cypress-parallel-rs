@@ -1,19 +1,5 @@
 use std::{path::{Path, PathBuf}, fs, io::Result, process, time::Duration, collections::HashMap};
 
-/// Remove all files in the directory only if the directory exists. Do nothing if not.
-///
-/// # Errors
-///
-/// This function will return an error if the directory operation fails.
-fn clean_directory(dir_path:&Path) -> Result<()> {    
-    if dir_path.is_dir() {
-        println!("The directory {:?} already exists!", dir_path);
-        fs::remove_dir_all(&dir_path)?;
-        fs::create_dir_all(dir_path)?;
-    }
-    return Ok(())
-}
-
 #[derive(Debug)]
 struct SpecWeight {
     time: Duration,
@@ -22,6 +8,22 @@ struct SpecWeight {
 
 type SpecWeights<'a> = HashMap<&'a str, SpecWeight>;
 type TotalWeight = u64;
+
+/// Remove all files in the directory only if the directory exists. Do nothing if not.
+///
+/// # Errors
+///
+/// This function will return an error if the directory operation fails.
+pub fn clean_directory(dir_path:&Path) -> Result<()> {    
+    if dir_path.is_dir() {
+        println!("The directory {:?} already exists!", dir_path);
+        fs::remove_dir_all(&dir_path)?;
+        fs::create_dir_all(dir_path)?;
+    } else {
+        fs::create_dir_all(dir_path)?;
+    }
+    Ok(())
+}
 
 /// Create weights for parallel computing based on the ratio of an execution time to the total time
 #[allow(dead_code)]
