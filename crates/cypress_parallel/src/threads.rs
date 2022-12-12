@@ -8,7 +8,11 @@ use std::{
 };
 
 use convert_case::{Case, Casing};
-use tokio::{process::Command, time::sleep};
+use tokio::{
+    process::Command,
+    task::JoinHandle,
+    time::{sleep, Instant},
+};
 
 pub struct Thread {
     pub paths: Vec<PathBuf>,
@@ -185,4 +189,37 @@ pub async fn execute_thread(thread: &Thread, index: u64) -> Result<ExitStatus> {
         .await?;
 
     Ok(cmd)
+}
+
+/// Execute test files asynchronously in parallel
+///
+/// # Panics
+///
+/// Panics if it fails to convert usize to u64.
+///
+/// # Errors
+///
+/// This function will return an error if running multiple threads fails.
+pub async fn parallel_execute_threads(test_weight_threads: Vec<Thread>) -> Result<()> {
+    let handles: Vec<JoinHandle<Result<ExitStatus>>> = test_weight_threads
+        .into_iter()
+        .enumerate()
+        .map(|(index, thread)| {
+            tokio::spawn(async move { execute_thread(&thread, index.try_into().unwrap()).await })
+        })
+        .collect();
+
+    // Todo: Set a proper start and end
+    let start = Instant::now();
+
+    for handle in handles {
+        // Todo: remove double questions and return errors
+        handle.await??;
+    }
+    println!(
+        "It took {} seconds to execute tests.",
+        start.elapsed().as_secs()
+    );
+
+    Ok(())
 }
