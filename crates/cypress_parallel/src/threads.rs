@@ -102,7 +102,7 @@ fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
 /// # Errors
 ///
 /// This function will return an error if the current directory is not found.
-fn create_command_arguments(thread: Thread) -> Result<Vec<String>> {
+fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
     // Todo: Rewrite this once config part is implemented.
     let settings: HashMap<&str, &str> = HashMap::new();
 
@@ -114,7 +114,7 @@ fn create_command_arguments(thread: Thread) -> Result<Vec<String>> {
     // Todo: it is different from the original implementation logic.
     let mut spec_files = thread
         .paths
-        .into_iter()
+        .iter()
         .map(|path| path.to_string_lossy().to_string())
         .collect::<Vec<String>>();
 
@@ -166,15 +166,15 @@ fn create_command_arguments(thread: Thread) -> Result<Vec<String>> {
 /// # Panics
 ///
 /// Panics if the function failed to create a command argument.
-async fn execute_thread(thread: Thread, index: u64) -> ExitStatus {
+pub async fn execute_thread(thread: &Thread, index: u64) -> Result<ExitStatus> {
     let package_manager = get_package_manager();
-    let command_arguments = create_command_arguments(thread)
-        .unwrap_or_else(|err| panic!("Failed to create a command argument: {}", err));
+    let command_arguments = create_command_arguments(thread)?;
 
     let ten_millis = time::Duration::from_millis(index);
 
     sleep(ten_millis).await;
 
+    // Todo: display an error detail if exit_status > 0
     let cmd = Command::new(package_manager.to_string())
         .args(command_arguments)
         .stdin(Stdio::inherit())
@@ -182,9 +182,7 @@ async fn execute_thread(thread: Thread, index: u64) -> ExitStatus {
         .spawn()
         .expect("failed to start the process")
         .wait()
-        .await
-        .expect("failed to finish the process");
+        .await?;
 
-    // Todo: display an error detail if exit_status > 0
-    cmd
+    Ok(cmd)
 }
