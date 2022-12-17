@@ -68,10 +68,10 @@ type CyRunResults = HashMap<PathBuf, String>;
 /// # Errors
 ///
 /// This function will return an error if the directory path does not exist.
-fn collect_cy_results(result_path: &Path) -> Result<CyRunResults> {
+pub fn collect_cy_results(results_path: &Path) -> Result<CyRunResults> {
     let mut results: CyRunResults = HashMap::new();
 
-    for entry in fs::read_dir(result_path)? {
+    for entry in fs::read_dir(results_path)? {
         let path = entry?.path();
         if !path.is_dir() {
             collect_cy_results(&path)?;
