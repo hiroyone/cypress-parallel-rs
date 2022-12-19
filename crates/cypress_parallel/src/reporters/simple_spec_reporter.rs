@@ -25,7 +25,7 @@ fn get_test_description(current_suite: &CurrentSuite, test: &Map<String, Value>)
 fn json_stream_custom() {
     let current_suite = CurrentSuite::new();
     let mut test: Map<String, Value> = Map::new();
-    test.insert("title".to_owned(), Value::String("Great".to_owned()));
+    test.insert("title".into(), Value::String("Great".into()));
     let _test_description = get_test_description(&current_suite, &test);
     todo!()
 }

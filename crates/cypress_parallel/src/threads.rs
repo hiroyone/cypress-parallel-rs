@@ -123,8 +123,8 @@ fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
         .collect::<Vec<String>>();
 
     let mut reporter = Vec::from([
-        "--reporter".to_string(),
-        settings["reporterModulePath"].to_string(),
+        "--reporter".to_owned(),
+        settings["reporterModulePath"].to_owned(),
     ]);
 
     let reporter_config_path;
@@ -150,9 +150,9 @@ fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
 
     let mut child_options: Vec<String> = Vec::from([
         "run".to_string(),
-        settings["script"].to_string(),
-        package_variant.to_string(),
-        "--spec".to_string(),
+        settings["script"].to_owned(),
+        package_variant.to_owned(),
+        "--spec".to_owned(),
     ]);
 
     child_options.append(&mut spec_files);
@@ -160,7 +160,7 @@ fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
     child_options.append(&mut reporter_options);
 
     // Todo: it is different from the original implementation logic.
-    child_options.append(&mut Vec::from([settings["scriptArguments"].to_string()]));
+    child_options.append(&mut Vec::from([settings["scriptArguments"].to_owned()]));
 
     Ok(child_options)
 }

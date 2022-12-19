@@ -23,10 +23,10 @@ fn clean_statistics() -> Statistics {
     let file = String::new();
 
     stats.insert(
-        "duration".to_owned(),
+        "duration".into(),
         Value::Number(Number::from(end.duration_since(start).as_secs())),
     );
-    stats.insert("file".to_owned(), Value::String(file));
+    stats.insert("file".into(), Value::String(file));
 
     stats
 }
