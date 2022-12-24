@@ -7,8 +7,8 @@ use std::env;
 use std::error::Error;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
-    let setting = config::Settings::global();
-    let results_path = &setting.results_path;
+    let settings = config::Settings::global();
+    let results_path = &settings.results_path;
     utility::clean_directory(results_path)?;
 
     let test_weight_threads = test_suites::get_test_weight_threads()?;

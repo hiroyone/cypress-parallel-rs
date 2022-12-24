@@ -15,7 +15,7 @@ pub struct Settings {
     pub script: String,
     pub strict_mode: bool,
     pub script_arguments: Vec<String>,
-    pub results_path: PathBuf
+    pub results_path: PathBuf,
 }
 
 pub static SETTINGS: OnceCell<Settings> = OnceCell::new();
@@ -30,14 +30,14 @@ impl Settings {
             is_verbose: false,
             weights_json: "cypress/parallel-weights.json".into(),
             default_weight: 1,
-            reporter: "".into(),
+            reporter: "cypress-parallel/simple-spec.reporter.js".into(),
             reporter_module_path: "cypress-multi-reporters".into(),
             reporter_options: "".into(),
             reporter_options_path: "".into(),
             script: "".into(),
             strict_mode: true,
             script_arguments: Vec::from(["2".into()]),
-            results_path: "runner-results".into()
+            results_path: "runner-results".into(),
         })
     }
 }

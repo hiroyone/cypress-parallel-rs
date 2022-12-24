@@ -1,4 +1,4 @@
-use crate::threads::Thread;
+use crate::{config, threads::Thread};
 use core::str;
 use glob::PatternError;
 use std::{
@@ -47,18 +47,16 @@ fn get_file_paths_by_glob(pattern: &str) -> Result<TestSuitesPath, PatternError>
 /// This function will return an error if the given path does not exist.
 pub fn get_test_suites_path() -> Result<Vec<PathBuf>, Box<dyn Error>> {
     // Todo: Rewrite this once config part is implemented.
-    let settings: HashMap<&str, &str> = HashMap::new();
+    let settings = config::Settings::global();
 
-    let test_suites_path = settings
-        .get("test_suites_path")
-        .ok_or("test_suites_path key was not found.")?;
+    let test_suites_path = &settings.test_suites_path;
 
     println!("Using pattern {} to find test suites", test_suites_path);
     let file_list = get_file_paths_by_glob(test_suites_path)?;
 
     let file_len = file_list.len();
     println!("{} test suites were found", file_len);
-    if settings.contains_key("isVerbose") {
+    if settings.is_verbose {
         println!("Paths to found suites");
         println!("{:?}", file_list);
     }

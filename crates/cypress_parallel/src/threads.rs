@@ -14,6 +14,8 @@ use tokio::{
     time::{sleep, Instant},
 };
 
+use crate::config;
+
 pub struct Thread {
     pub paths: Vec<PathBuf>,
     pub weight: i32,
@@ -67,24 +69,20 @@ fn create_reporter_options(string: &str) -> HashMap<&str, &str> {
 ///
 /// This function will return an error if writing the JSON to the file fails.
 fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
-    // Todo: Rewrite this once config part is implemented.
-    let settings: HashMap<&str, &str> = HashMap::new();
+    let settings = config::Settings::global();
+    let reporter = &settings.reporter;
+    let mut reporter_enabled: Vec<String> =
+        Vec::from(["cypress-parallel-rs/json-stream.reporter.js".into()]);
 
-    let mut reporter_enabled = Vec::from(["cypress-parallel-rs/json-stream.reporter.js"]);
-
-    if settings.contains_key("reporter") {
-        reporter_enabled.push(settings["reporter"])
-    } else {
-        reporter_enabled.push("cypress-parallel/simple-spec.reporter.js")
-    }
+    reporter_enabled.push(reporter.to_string());
 
     let mut option_name = String::new();
     let mut reporter_options = HashMap::new();
-    if settings.contains_key("reporterOptions") {
+    if &settings.reporter_options != "" {
         // Create a camel name + suffix
-        option_name.push_str(&settings["reporter"].to_case(Case::Camel));
+        option_name.push_str(&reporter.as_str().to_case(Case::Camel));
         option_name.push_str("ReporterOptions");
-        reporter_options = create_reporter_options(settings["reporterOptions"]);
+        reporter_options = create_reporter_options(&settings.reporter_options);
     }
 
     fs::write(
