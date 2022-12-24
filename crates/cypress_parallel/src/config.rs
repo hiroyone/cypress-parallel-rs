@@ -1,5 +1,5 @@
 use once_cell::sync::OnceCell;
-use std::{fmt::Error, path::PathBuf};
+use std::path::PathBuf;
 #[derive(Debug)]
 pub struct Settings {
     pub thread_count: u16,
@@ -20,6 +20,7 @@ pub struct Settings {
 pub static SETTINGS: OnceCell<Settings> = OnceCell::new();
 
 impl Settings {
+    /// Add a global default value
     pub fn global() -> &'static Self {
         SETTINGS.get_or_init(|| Self {
             thread_count: 2,
