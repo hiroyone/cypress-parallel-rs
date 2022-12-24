@@ -139,6 +139,11 @@ pub fn distribute_tests_by_threads(
     return Ok(threads);
 }
 
+/// Get test weight threads from the config file
+///
+/// # Errors
+///
+/// This function will return an error if test-suites or weights are invalid.
 pub fn get_test_weight_threads() -> Result<Vec<Thread>, Box<dyn Error>> {
     let test_suites_path = get_test_suites_path()?;
     let test_weight_map = distribute_tests_by_weight(test_suites_path)?;
