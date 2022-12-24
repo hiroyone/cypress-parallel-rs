@@ -16,6 +16,7 @@ use tokio::{
 
 use crate::config;
 
+#[derive(Debug)]
 pub struct Thread {
     pub paths: Vec<PathBuf>,
     pub weight: u16,
