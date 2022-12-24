@@ -1,9 +1,7 @@
 use crate::config;
-use crate::config::Settings;
 use crate::test_suites;
 use crate::threads;
 use crate::utility;
-use std::env;
 use std::error::Error;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
