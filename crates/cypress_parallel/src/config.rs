@@ -15,7 +15,7 @@ pub struct Settings {
     pub script: String,
     pub strict_mode: bool,
     pub script_arguments: Vec<String>,
-    pub result_path: PathBuf
+    pub results_path: PathBuf
 }
 
 pub static SETTINGS: OnceCell<Settings> = OnceCell::new();
@@ -37,7 +37,7 @@ impl Settings {
             script: "".into(),
             strict_mode: true,
             script_arguments: Vec::from(["2".into()]),
-            result_path: "runner-results".into()
+            results_path: "runner-results".into()
         })
     }
 }
