@@ -18,7 +18,7 @@ use crate::config;
 
 pub struct Thread {
     pub paths: Vec<PathBuf>,
-    pub weight: i32,
+    pub weight: u16,
 }
 
 enum PackageManager {

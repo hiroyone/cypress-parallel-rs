@@ -9,7 +9,7 @@ use std::{
 };
 
 type TestSuitesPath = Vec<PathBuf>;
-type OrderedTestDist = BTreeMap<i32, PathBuf>;
+type OrderedTestDist = BTreeMap<u16, PathBuf>;
 
 /// Get a list of file paths under the directory
 ///
@@ -46,9 +46,7 @@ fn get_file_paths_by_glob(pattern: &str) -> Result<TestSuitesPath, PatternError>
 ///
 /// This function will return an error if the given path does not exist.
 pub fn get_test_suites_path() -> Result<Vec<PathBuf>, Box<dyn Error>> {
-    // Todo: Rewrite this once config part is implemented.
     let settings = config::Settings::global();
-
     let test_suites_path = &settings.test_suites_path;
 
     println!("Using pattern {} to find test suites", test_suites_path);
@@ -76,22 +74,16 @@ pub fn get_test_suites_path() -> Result<Vec<PathBuf>, Box<dyn Error>> {
 pub fn distribute_tests_by_weight(
     test_suites_path: TestSuitesPath,
 ) -> Result<OrderedTestDist, Box<dyn Error>> {
-    // Todo: Rewrite this once config part is implemented.
-    let settings: HashMap<&str, &str> = HashMap::new();
-    let weights_json = settings
-        .get("weightsJSON")
-        .ok_or("weightsJSON key was not found.")?;
-    let default_weight = settings
-        .get("defaultWeight")
-        .ok_or("defaultWeight key was not found.")?
-        .parse::<i32>()?;
+    let settings = config::Settings::global();
+    let weights_json = &settings.weights_json;
+    let default_weight = settings.default_weight;
 
     // Retrieve execution weights from the config file
     let spec_weights_json = fs::read_to_string(weights_json)?;
-    let spec_weights: HashMap<&str, i32> = serde_json::from_str(&spec_weights_json)?;
+    let spec_weights: HashMap<&str, u16> = serde_json::from_str(&spec_weights_json)?;
 
     // Create an ordered map for weights and test paths passed from the JSON file
-    let mut ordered_test_dist: BTreeMap<i32, PathBuf> = BTreeMap::new();
+    let mut ordered_test_dist: BTreeMap<u16, PathBuf> = BTreeMap::new();
     test_suites_path.into_iter().for_each(|file_path: PathBuf| {
         let mut spec_weight = default_weight;
         for spec_path in spec_weights.keys() {
@@ -114,14 +106,10 @@ pub fn distribute_tests_by_weight(
 pub fn distribute_tests_by_threads(
     ordered_test_dist: OrderedTestDist,
 ) -> Result<Vec<Thread>, Box<dyn Error>> {
-    // Todo: Rewrite this once config part is implemented.
-    let settings: HashMap<&str, &str> = HashMap::new();
+    let settings = config::Settings::global();
 
     let mut threads: Vec<Thread> = Vec::new();
-    let thread_count = settings
-        .get("threadCount")
-        .ok_or("threadCount key was not found")?
-        .parse()?;
+    let thread_count = settings.thread_count;
 
     for _ in 0..thread_count {
         threads.push(Thread {
