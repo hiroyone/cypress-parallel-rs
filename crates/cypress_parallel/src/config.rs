@@ -15,6 +15,7 @@ pub struct Settings {
     pub script: String,
     pub strict_mode: bool,
     pub script_arguments: Vec<String>,
+    pub result_path: PathBuf
 }
 
 pub static SETTINGS: OnceCell<Settings> = OnceCell::new();
@@ -36,38 +37,7 @@ impl Settings {
             script: "".into(),
             strict_mode: true,
             script_arguments: Vec::from(["2".into()]),
+            result_path: "runner-results".into()
         })
-    }
-
-    pub fn new(
-        thread_count: u16,
-        test_suites_path: String,
-        should_bail: bool,
-        is_verbose: bool,
-        weights_json: String,
-        default_weight: u16,
-        reporter: String,
-        reporter_module_path: PathBuf,
-        reporter_options: String,
-        reporter_options_path: PathBuf,
-        script: String,
-        strict_mode: bool,
-        script_arguments: Vec<String>,
-    ) -> Self {
-        Self {
-            thread_count,
-            test_suites_path,
-            should_bail,
-            is_verbose,
-            weights_json,
-            default_weight,
-            reporter,
-            reporter_module_path,
-            reporter_options,
-            reporter_options_path,
-            script,
-            strict_mode,
-            script_arguments,
-        }
     }
 }
