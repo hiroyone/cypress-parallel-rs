@@ -4,7 +4,8 @@ use glob::PatternError;
 use std::{
     collections::{BTreeMap, HashMap},
     error::Error,
-    fs, io,
+    fs,
+    io::{self, Write},
     path::{Path, PathBuf},
 };
 
@@ -79,8 +80,20 @@ pub fn distribute_tests_by_weight(
     let default_weight = settings.default_weight;
 
     // Retrieve execution weights from the config file
+    let mut spec_weights: HashMap<&str, u16> = HashMap::new();
+    let weights_json = Path::new(weights_json);
+
+    // Create parent dir and file if not exists
+    if !weights_json.is_file() {
+        if let Some(parent_dir) = weights_json.parent() {
+            fs::create_dir_all(parent_dir)?;
+        }
+        let mut file = fs::File::create(weights_json)?;
+        file.write_all(b"{}")?;
+    }
+
     let spec_weights_json = fs::read_to_string(weights_json)?;
-    let spec_weights: HashMap<&str, u16> = serde_json::from_str(&spec_weights_json)?;
+    spec_weights = serde_json::from_str(&spec_weights_json)?;
 
     // Create an ordered map for weights and test paths passed from the JSON file
     let mut ordered_test_dist: BTreeMap<u16, PathBuf> = BTreeMap::new();
