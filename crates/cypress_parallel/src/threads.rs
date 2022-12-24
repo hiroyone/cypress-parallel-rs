@@ -105,9 +105,7 @@ fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
 ///
 /// This function will return an error if the current directory is not found.
 fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
-    // Todo: Rewrite this once config part is implemented.
-    let settings: HashMap<&str, &str> = HashMap::new();
-
+    let settings = config::Settings::global();
     let package_variant = match get_package_manager() {
         PackageManager::Npm => "--",
         PackageManager::Yarn => "",
@@ -122,13 +120,13 @@ fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
 
     let mut reporter = Vec::from([
         "--reporter".to_owned(),
-        settings["reporterModulePath"].to_owned(),
+        settings.reporter_module_path.to_owned(),
     ]);
 
     let reporter_config_path;
 
-    if settings.contains_key("reporterOptionsPath") {
-        reporter_config_path = Path::new(settings["reporterOptionsPath"]).to_path_buf();
+    if settings.reporter_options_path != "" {
+        reporter_config_path = Path::new(&settings.reporter_options_path).to_path_buf();
     } else {
         let cwd = env::current_dir()?;
         reporter_config_path = cwd.join("multi-reporter-config.json");
@@ -148,7 +146,7 @@ fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
 
     let mut child_options: Vec<String> = Vec::from([
         "run".to_string(),
-        settings["script"].to_owned(),
+        settings.script.to_owned(),
         package_variant.to_owned(),
         "--spec".to_owned(),
     ]);
@@ -157,8 +155,7 @@ fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
     child_options.append(&mut reporter);
     child_options.append(&mut reporter_options);
 
-    // Todo: it is different from the original implementation logic.
-    child_options.append(&mut Vec::from([settings["scriptArguments"].to_owned()]));
+    child_options.append(&mut settings.script_arguments.to_owned());
 
     Ok(child_options)
 }
