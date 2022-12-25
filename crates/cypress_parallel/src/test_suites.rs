@@ -49,16 +49,11 @@ pub fn get_test_suites_path() -> Result<TestSuitesPath, Box<dyn Error>> {
     let settings = config::Settings::global();
     let test_suites_path = &settings.test_suites_path;
 
-    println!("Using pattern {} to find test suites", test_suites_path);
+    log::debug!("Using pattern {} to find test suites.", test_suites_path);
     let file_list = get_file_paths_by_glob(test_suites_path)?;
 
-    let file_len = file_list.len();
-    println!("{} test suites were found", file_len);
-    if settings.is_verbose {
-        println!("Paths to found suites");
-        println!("{:?}", file_list);
-    }
-
+    log::debug!("Finding {} test suites.", file_list.len());
+    
     Ok(file_list)
 }
 
@@ -147,6 +142,7 @@ pub fn distribute_tests_by_threads(
 ///
 /// This function will return an error if test-suites or weights are invalid.
 pub fn get_test_weight_threads() -> Result<Vec<Thread>, Box<dyn Error>> {
+    log::info!("Getting Test weight threads.");
     let test_suites_path = get_test_suites_path()?;
     let ordered_test_dist = distribute_tests_by_weight(test_suites_path)?;
     let threads = distribute_tests_by_threads(ordered_test_dist)?;
