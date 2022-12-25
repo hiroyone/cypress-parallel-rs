@@ -22,12 +22,12 @@ type TotalWeight = u64;
 /// This function will return an error if the directory operation fails.
 pub fn clean_directory(dir_path: &Path) -> Result<()> {
     if dir_path.is_dir() {
-        println!("The directory {:?} already exists!", dir_path);
         fs::remove_dir_all(&dir_path)?;
         fs::create_dir_all(dir_path)?;
     } else {
         fs::create_dir_all(dir_path)?;
     }
+    log::debug!("The directory is cleaned: {:?}", dir_path);
     Ok(())
 }
 

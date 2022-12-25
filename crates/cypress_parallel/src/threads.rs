@@ -158,6 +158,8 @@ fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
 
     child_options.append(&mut settings.script_arguments.to_owned());
 
+    log::trace!("command script: {:?}", child_options);
+
     Ok(child_options)
 }
 
@@ -197,6 +199,7 @@ pub async fn execute_thread(thread: &Thread, index: u64) -> Result<ExitStatus> {
 ///
 /// This function will return an error if running multiple threads fails.
 pub async fn parallel_execute_threads(test_weight_threads: Vec<Thread>) -> Result<()> {
+    log::info!("Execute threads in parallel.");
     let handles: Vec<JoinHandle<Result<ExitStatus>>> = test_weight_threads
         .into_iter()
         .enumerate()
@@ -212,7 +215,7 @@ pub async fn parallel_execute_threads(test_weight_threads: Vec<Thread>) -> Resul
         // Todo: remove double questions and return errors
         handle.await??;
     }
-    println!(
+    log::info!(
         "It took {} seconds to execute tests.",
         start.elapsed().as_secs()
     );

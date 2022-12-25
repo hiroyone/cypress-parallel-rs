@@ -6,6 +6,8 @@ use std::error::Error;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
     let settings = config::Settings::global();
+    log::debug!("Reading config parameters: {:?}", settings);
+
     let results_path = &settings.results_path;
     utility::clean_directory(results_path)?;
 
@@ -14,7 +16,7 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
 
     let results_maps = utility::collect_cy_results(results_path)?;
 
-    println!("{:?}", results_maps);
+    log::debug!("{:?}", results_maps);
 
     Ok(())
 }
