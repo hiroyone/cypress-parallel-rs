@@ -1,16 +1,15 @@
-use crate::{config, threads::Thread};
+use crate::{config, threads::Thread, utility};
 use core::str;
 use glob::PatternError;
 use std::{
     collections::{BTreeMap, HashMap},
     error::Error,
-    fs,
-    io::{self, Write},
+    fs, io,
     path::{Path, PathBuf},
 };
 
 type TestSuitesPath = Vec<PathBuf>;
-type OrderedTestDist = BTreeMap<u16, PathBuf>;
+type OrderedTestDist = BTreeMap<u16, TestSuitesPath>;
 
 /// Get a list of file paths under the directory
 ///
@@ -18,7 +17,7 @@ type OrderedTestDist = BTreeMap<u16, PathBuf>;
 ///
 /// This function will return an error if the passed-in directory does not exist.
 #[allow(dead_code)]
-fn get_file_paths_by_dir_path(dir_path: &Path) -> Result<Vec<PathBuf>, io::Error> {
+fn get_file_paths_by_dir_path(dir_path: &Path) -> Result<TestSuitesPath, io::Error> {
     let mut entries = fs::read_dir(dir_path)?
         .map(|res| res.map(|e| e.path()))
         .collect::<Result<Vec<_>, io::Error>>()?;
@@ -35,7 +34,7 @@ fn get_file_paths_by_dir_path(dir_path: &Path) -> Result<Vec<PathBuf>, io::Error
 fn get_file_paths_by_glob(pattern: &str) -> Result<TestSuitesPath, PatternError> {
     let mut entries = glob::glob(pattern)?
         .filter_map(Result::ok)
-        .collect::<Vec<PathBuf>>();
+        .collect::<TestSuitesPath>();
 
     entries.sort();
     return Ok(entries);
@@ -46,7 +45,7 @@ fn get_file_paths_by_glob(pattern: &str) -> Result<TestSuitesPath, PatternError>
 /// # Errors
 ///
 /// This function will return an error if the given path does not exist.
-pub fn get_test_suites_path() -> Result<Vec<PathBuf>, Box<dyn Error>> {
+pub fn get_test_suites_path() -> Result<TestSuitesPath, Box<dyn Error>> {
     let settings = config::Settings::global();
     let test_suites_path = &settings.test_suites_path;
 
@@ -80,32 +79,32 @@ pub fn distribute_tests_by_weight(
     let default_weight = settings.default_weight;
 
     // Retrieve execution weights from the config file
-    let mut spec_weights: HashMap<&str, u16> = HashMap::new();
     let weights_json = Path::new(weights_json);
 
     // Create parent dir and file if not exists
     if !weights_json.is_file() {
-        if let Some(parent_dir) = weights_json.parent() {
-            fs::create_dir_all(parent_dir)?;
-        }
-        let mut file = fs::File::create(weights_json)?;
-        file.write_all(b"{}")?;
+        utility::create_file_with_dir(weights_json)?;
     }
 
     let spec_weights_json = fs::read_to_string(weights_json)?;
-    spec_weights = serde_json::from_str(&spec_weights_json)?;
+    let spec_weights: HashMap<&str, u16> = serde_json::from_str(&spec_weights_json)?;
 
     // Create an ordered map for weights and test paths passed from the JSON file
-    let mut ordered_test_dist: BTreeMap<u16, PathBuf> = BTreeMap::new();
+    let mut ordered_test_dist = OrderedTestDist::new();
     test_suites_path.into_iter().for_each(|file_path: PathBuf| {
         let mut spec_weight = default_weight;
+        // Todo: perform integration test for different inputs
+        // if a weight is pre-defined in the weights_json file, then set its value as a spec_weight
         for spec_path in spec_weights.keys() {
             if file_path.ends_with(spec_path) {
                 spec_weight = spec_weights[spec_path];
                 break;
             }
         }
-        ordered_test_dist.insert(spec_weight, file_path);
+        ordered_test_dist
+            .entry(spec_weight)
+            .and_modify(|test_suites_path| test_suites_path.push(file_path.to_owned()))
+            .or_insert(Vec::from([file_path]));
     });
 
     Ok(ordered_test_dist)
@@ -131,11 +130,14 @@ pub fn distribute_tests_by_threads(
         })
     }
 
-    for (key, value) in ordered_test_dist.into_iter() {
-        threads.sort_by(|a, b| a.weight.cmp(&b.weight));
-        threads[0].paths.push(value);
-        threads[0].weight += key;
+    for (spec_weight, test_suites_path) in ordered_test_dist.into_iter() {
+        test_suites_path.into_iter().for_each(|file_path| {
+            threads.sort_by(|a, b| a.weight.cmp(&b.weight));
+            threads[0].paths.push(file_path);
+            threads[0].weight += spec_weight;
+        })
     }
+
     return Ok(threads);
 }
 
@@ -146,7 +148,7 @@ pub fn distribute_tests_by_threads(
 /// This function will return an error if test-suites or weights are invalid.
 pub fn get_test_weight_threads() -> Result<Vec<Thread>, Box<dyn Error>> {
     let test_suites_path = get_test_suites_path()?;
-    let test_weight_map = distribute_tests_by_weight(test_suites_path)?;
-    let threads = distribute_tests_by_threads(test_weight_map)?;
+    let ordered_test_dist = distribute_tests_by_weight(test_suites_path)?;
+    let threads = distribute_tests_by_threads(ordered_test_dist)?;
     Ok(threads)
 }

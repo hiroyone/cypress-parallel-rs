@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     fs,
-    io::Result,
+    io::{Result, Write},
     path::{Path, PathBuf},
     time::Duration,
 };
@@ -28,6 +28,20 @@ pub fn clean_directory(dir_path: &Path) -> Result<()> {
     } else {
         fs::create_dir_all(dir_path)?;
     }
+    Ok(())
+}
+
+/// Create a file with directory
+///
+/// # Errors
+///
+/// This function will return an error if creating a directory or a file fails.
+pub fn create_file_with_dir(weights_json: &Path) -> Result<()> {
+    if let Some(parent_dir) = weights_json.parent() {
+        fs::create_dir_all(parent_dir)?;
+    }
+    let mut file = fs::File::create(weights_json)?;
+    file.write_all(b"{}")?;
     Ok(())
 }
 

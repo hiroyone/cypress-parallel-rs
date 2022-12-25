@@ -25,7 +25,7 @@ impl Settings {
     pub fn global() -> &'static Self {
         SETTINGS.get_or_init(|| Self {
             thread_count: 2,
-            test_suites_path: "cypress/integration".into(),
+            test_suites_path: "cypress/e2e/**/*.js".into(),
             should_bail: false,
             is_verbose: false,
             weights_json: "cypress/parallel-weights.json".into(),
