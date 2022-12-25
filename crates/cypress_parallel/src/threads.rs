@@ -51,17 +51,17 @@ fn get_package_manager() -> PackageManager {
 }
 
 /// Create an option map for the report option string
-fn create_reporter_options_map(string: &str) -> HashMap<&str, &str> {
+fn create_reporter_options(string: &str) -> HashMap<&str, &str> {
     let options: Vec<&str> = string.split(',').collect();
 
-    let mut option_map: HashMap<&str, &str> = HashMap::new();
+    let mut reporter_options: HashMap<&str, &str> = HashMap::new();
     for value in options.into_iter() {
         let kv_array: Vec<&str> = value.split("=").collect();
         let key: &str = kv_array[0].trim();
         let value: &str = kv_array[1].trim();
-        option_map.insert(key, value);
+        reporter_options.insert(key, value);
     }
-    option_map
+    reporter_options
 }
 
 /// Write Cypress reporting config to the json file
@@ -83,7 +83,7 @@ fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
         // Create a camel name + suffix
         option_name.push_str(&reporter.as_str().to_case(Case::Camel));
         option_name.push_str("ReporterOptions");
-        reporter_options = create_reporter_options_map(&settings.reporter_options);
+        reporter_options = create_reporter_options(&settings.reporter_options);
     }
 
     fs::write(
@@ -106,14 +106,6 @@ fn get_reporter_config_path(settings: &config::Settings) -> Result<PathBuf> {
         create_reporter_config_file(&reporter_config_path)?
     }
     Ok(reporter_config_path)
-}
-
-/// Return a reporter config path
-fn create_reporter_options_param(reporter_config_path: PathBuf) -> String {
-    String::from(format!(
-        "configFile={}",
-        reporter_config_path.to_string_lossy().to_string()
-    ))
 }
 
 /// Create command arguments based on spec files and the config
