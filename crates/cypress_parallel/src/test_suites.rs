@@ -53,7 +53,7 @@ pub fn get_test_suites_path() -> Result<TestSuitesPath, Box<dyn Error>> {
     let file_list = get_file_paths_by_glob(test_suites_path)?;
 
     log::debug!("Finding {} test suites.", file_list.len());
-    
+
     Ok(file_list)
 }
 

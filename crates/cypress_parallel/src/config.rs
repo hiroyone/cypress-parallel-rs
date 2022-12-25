@@ -34,7 +34,8 @@ impl Settings {
             reporter_module_path: "cypress-multi-reporters".into(),
             reporter_options: "".into(),
             reporter_options_path: "".into(),
-            script: "".into(),
+            // Todo: script may need be empty string in the end.
+            script: "cypress:run".into(),
             strict_mode: true,
             script_arguments: Vec::from(["2".into()]),
             results_path: "runner-results".into(),

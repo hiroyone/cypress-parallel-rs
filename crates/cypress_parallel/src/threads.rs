@@ -39,7 +39,7 @@ impl fmt::Display for PackageManager {
 /// Return yarn or npm which a user depends on.
 fn get_package_manager() -> PackageManager {
     // Todo: implement isYarn
-    let is_yarn = true;
+    let is_yarn = false;
 
     let package_manager;
     if is_yarn {
@@ -51,7 +51,7 @@ fn get_package_manager() -> PackageManager {
 }
 
 /// Create an option map for the report option string
-fn create_reporter_options(string: &str) -> HashMap<&str, &str> {
+fn create_reporter_options_map(string: &str) -> HashMap<&str, &str> {
     let options: Vec<&str> = string.split(',').collect();
 
     let mut option_map: HashMap<&str, &str> = HashMap::new();
@@ -83,7 +83,7 @@ fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
         // Create a camel name + suffix
         option_name.push_str(&reporter.as_str().to_case(Case::Camel));
         option_name.push_str("ReporterOptions");
-        reporter_options = create_reporter_options(&settings.reporter_options);
+        reporter_options = create_reporter_options_map(&settings.reporter_options);
     }
 
     fs::write(
@@ -96,6 +96,26 @@ fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
     )
 }
 
+fn get_reporter_config_path(settings: &config::Settings) -> Result<PathBuf> {
+    let reporter_config_path: PathBuf;
+    if settings.reporter_options_path != "" {
+        reporter_config_path = Path::new(&settings.reporter_options_path).to_path_buf();
+    } else {
+        let cwd = env::current_dir()?;
+        reporter_config_path = cwd.join("multi-reporter-config.json");
+        create_reporter_config_file(&reporter_config_path)?
+    }
+    Ok(reporter_config_path)
+}
+
+/// Return a reporter config path
+fn create_reporter_options_param(reporter_config_path: PathBuf) -> String {
+    String::from(format!(
+        "configFile={}",
+        reporter_config_path.to_string_lossy().to_string()
+    ))
+}
+
 /// Create command arguments based on spec files and the config
 ///
 /// # Panics
@@ -106,10 +126,12 @@ fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
 ///
 /// This function will return an error if the current directory is not found.
 fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
+    log::info!("Creating command arguments.");
+
     let settings = config::Settings::global();
     let package_variant = match get_package_manager() {
-        PackageManager::Npm => "--",
-        PackageManager::Yarn => "",
+        PackageManager::Npm => "",
+        PackageManager::Yarn => "--",
     };
 
     // Todo: it is different from the original implementation logic.
@@ -118,49 +140,34 @@ fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
         .iter()
         .map(|path| path.to_string_lossy().to_string())
         .collect::<Vec<String>>();
-
     let mut reporter = Vec::from([
         "--reporter".to_owned(),
         settings.reporter_module_path.to_owned(),
     ]);
 
-    let reporter_config_path;
+    let reporter_config_path = get_reporter_config_path(settings)?;
+    let mut reporter_options = Vec::from([
+        "--reporter-options".to_string(),
+        format!(
+            "configFile={}",
+            reporter_config_path.to_string_lossy().to_string()
+        ),
+    ]);
 
-    if settings.reporter_options_path != "" {
-        reporter_config_path = Path::new(&settings.reporter_options_path).to_path_buf();
-    } else {
-        let cwd = env::current_dir()?;
-        reporter_config_path = cwd.join("multi-reporter-config.json");
-
-        create_reporter_config_file(&reporter_config_path).unwrap_or_else(|err| {
-            panic!("Failed to create a report config file: {}", err);
-        })
-    }
-
-    let reporter_config_path_param = String::from(format!(
-        "configFile={}",
-        reporter_config_path.to_str().unwrap()
-    ));
-
-    let mut reporter_options =
-        Vec::from(["--reporter-options".to_string(), reporter_config_path_param]);
-
-    let mut child_options: Vec<String> = Vec::from([
+    let mut command_arguments: Vec<String> = Vec::from([
         "run".to_string(),
         settings.script.to_owned(),
         package_variant.to_owned(),
         "--spec".to_owned(),
     ]);
+    command_arguments.append(&mut spec_files);
+    command_arguments.append(&mut reporter);
+    command_arguments.append(&mut reporter_options);
+    command_arguments.append(&mut settings.script_arguments.to_owned());
 
-    child_options.append(&mut spec_files);
-    child_options.append(&mut reporter);
-    child_options.append(&mut reporter_options);
+    log::trace!("Command script: {:?}", command_arguments);
 
-    child_options.append(&mut settings.script_arguments.to_owned());
-
-    log::trace!("command script: {:?}", child_options);
-
-    Ok(child_options)
+    Ok(command_arguments)
 }
 
 /// Execute test files asynchronously
@@ -177,6 +184,7 @@ pub async fn execute_thread(thread: &Thread, index: u64) -> Result<ExitStatus> {
     sleep(ten_millis).await;
 
     // Todo: display an error detail if exit_status > 0
+    // Todo: test the command works for both npm and yarn (or npx would be better)
     let cmd = Command::new(package_manager.to_string())
         .args(command_arguments)
         .stdin(Stdio::inherit())

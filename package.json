@@ -1,8 +1,12 @@
 {
   "scripts": {
-    "cypress:open": "cypress open"
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
   },
   "devDependencies": {
     "cypress": "^12.2.0"
+  },
+  "peerDependencies": {
+    "cypress-multi-reporters": "^1.5.0"
   }
 }
