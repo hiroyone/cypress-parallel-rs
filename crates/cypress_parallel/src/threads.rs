@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    env, fmt, fs,
+    fmt, fs,
     io::Result,
     path::{Path, PathBuf},
     process::{ExitStatus, Stdio},
@@ -70,6 +70,11 @@ fn create_reporter_options(string: &str) -> HashMap<&str, &str> {
 ///
 /// This function will return an error if writing the JSON to the file fails.
 fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
+    log::debug!(
+        "reporter-config.json does not exists in {:?}. New one will be created.",
+        path
+    );
+
     let settings = config::Settings::global();
     let reporter = &settings.reporter;
     let mut reporter_enabled: Vec<String> =
@@ -96,23 +101,7 @@ fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
     )
 }
 
-fn get_reporter_config_path(settings: &config::Settings) -> Result<PathBuf> {
-    let reporter_config_path: PathBuf;
-    if settings.reporter_options_path != "" {
-        reporter_config_path = Path::new(&settings.reporter_options_path).to_path_buf();
-    } else {
-        let cwd = env::current_dir()?;
-        reporter_config_path = cwd.join("multi-reporter-config.json");
-        create_reporter_config_file(&reporter_config_path)?
-    }
-    Ok(reporter_config_path)
-}
-
 /// Create command arguments based on spec files and the config
-///
-/// # Panics
-///
-/// Panics if it fails to create a report config file
 ///
 /// # Errors
 ///
@@ -126,18 +115,23 @@ fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
         PackageManager::Yarn => "--",
     };
 
-    // Todo: it is different from the original implementation logic.
-    let mut spec_files = thread
+    // Todo: glob esacpe may be better considered.
+    let spec_files = thread
         .paths
         .iter()
         .map(|path| path.to_string_lossy().to_string())
-        .collect::<Vec<String>>();
+        .collect::<Vec<String>>()
+        .join(",");
+
     let mut reporter = Vec::from([
         "--reporter".to_owned(),
         settings.reporter_module_path.to_owned(),
     ]);
 
-    let reporter_config_path = get_reporter_config_path(settings)?;
+    let reporter_config_path = Path::new(&settings.reporter_options_path).to_path_buf();
+    if !reporter_config_path.is_file() {
+        create_reporter_config_file(&reporter_config_path)?;
+    }
     let mut reporter_options = Vec::from([
         "--reporter-options".to_string(),
         format!(
@@ -152,7 +146,7 @@ fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
         package_variant.to_owned(),
         "--spec".to_owned(),
     ]);
-    command_arguments.append(&mut spec_files);
+    command_arguments.push(spec_files);
     command_arguments.append(&mut reporter);
     command_arguments.append(&mut reporter_options);
     command_arguments.append(&mut settings.script_arguments.to_owned());
@@ -166,7 +160,11 @@ fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
 ///
 /// # Panics
 ///
-/// Panics if the function failed to create a command argument.
+/// Panics if a process fails to start.
+///
+/// # Errors
+///
+/// This function will return an error if command_arguments fails to get created.
 pub async fn execute_thread(thread: &Thread, index: u64) -> Result<ExitStatus> {
     let package_manager = get_package_manager();
     let command_arguments = create_command_arguments(thread)?;
