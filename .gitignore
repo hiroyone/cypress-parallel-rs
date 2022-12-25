@@ -15,10 +15,11 @@ Cargo.lock
 
 # Cypress related files
 **/multi-reporter-config.json
-cypress/parallel-weights.json
+cypress/
 
 # NPM Dependency directories
 node_modules/
 
 # misc
 .DS_Store
+cypress.config.js
