@@ -107,8 +107,6 @@ fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
 ///
 /// This function will return an error if the current directory is not found.
 fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
-    log::info!("Creating command arguments.");
-
     let settings = config::Settings::global();
     let package_variant = match get_package_manager() {
         PackageManager::Npm => "",
@@ -145,8 +143,8 @@ fn create_command_arguments(thread: &Thread) -> Result<Vec<String>> {
         settings.script.to_owned(),
         package_variant.to_owned(),
         "--spec".to_owned(),
+        spec_files,
     ]);
-    command_arguments.push(spec_files);
     command_arguments.append(&mut reporter);
     command_arguments.append(&mut reporter_options);
     command_arguments.append(&mut settings.script_arguments.to_owned());
