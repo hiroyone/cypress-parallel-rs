@@ -30,7 +30,7 @@ impl Settings {
             is_verbose: false,
             weights_json: "cypress/parallel-weights.json".into(),
             default_weight: 1,
-            reporter: "cypress-parallel/simple-spec.reporter.js".into(),
+            reporter: "cypress-parallel-rs/simple-spec.reporter.js".into(),
             reporter_module_path: "cypress-multi-reporters".into(),
             reporter_options: "".into(),
             reporter_options_path: "multi-reporter-config.json".into(),
