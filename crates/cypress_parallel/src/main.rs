@@ -8,7 +8,7 @@ async fn main() {
     // Todo: Set the level to "info" after the initial development
     env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init();
     cli::start().await.unwrap_or_else(|err| {
-        eprintln!("Problem running the application: {}", err);
+        log::error!("Problem running the application: {}", err);
         process::exit(1);
     });
 }

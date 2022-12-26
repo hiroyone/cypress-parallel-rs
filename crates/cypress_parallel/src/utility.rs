@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     fs,
@@ -12,6 +13,19 @@ struct SpecWeight {
     weight: u64,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TestResult {
+    pub suites: u16,
+    pub tests: u16,
+    pub passes: u16,
+    pub pending: u16,
+    pub failures: u16,
+    pub start: String,
+    pub duration: u16,
+    pub file: PathBuf,
+}
+
+type CyRunResults = HashMap<PathBuf, TestResult>;
 type SpecWeights<'a> = HashMap<&'a str, SpecWeight>;
 type TotalWeight = u64;
 
@@ -75,8 +89,6 @@ fn generate_weights_test() {
     assert_eq!(spec_weights["sample"].weight, 5000);
 }
 
-type CyRunResults = HashMap<PathBuf, String>;
-
 /// Gather Cypress results from the result directory
 ///
 /// # Errors
@@ -87,10 +99,11 @@ pub fn collect_cy_results(results_path: &Path) -> Result<CyRunResults> {
 
     for entry in fs::read_dir(results_path)? {
         let path = entry?.path();
-        if !path.is_dir() {
+        if path.is_dir() {
             collect_cy_results(&path)?;
         } else {
             let content = fs::read_to_string(&path)?;
+            let content: TestResult = serde_json::from_str(&content)?;
             results.insert(path, content);
         }
     }
