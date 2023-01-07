@@ -25,7 +25,7 @@ pub struct TestResult {
     pub file: PathBuf,
 }
 
-type CyRunResults = HashMap<PathBuf, TestResult>;
+pub type CyRunResults = HashMap<PathBuf, TestResult>;
 type SpecWeights<'a> = HashMap<&'a str, SpecWeight>;
 type TotalWeight = u64;
 
