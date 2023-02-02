@@ -4,13 +4,12 @@ use std::{
     fs,
     io::{Result, Write},
     path::{Path, PathBuf},
-    time::Duration,
 };
 
 #[derive(Debug)]
-struct SpecWeight {
-    time: Duration,
-    weight: u64,
+pub struct SpecWeight {
+    pub time: u16,
+    pub weight: u16,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -26,8 +25,7 @@ pub struct TestResult {
 }
 
 pub type CyRunResults = HashMap<PathBuf, TestResult>;
-type SpecWeights<'a> = HashMap<&'a str, SpecWeight>;
-type TotalWeight = u64;
+type SpecWeights<'a> = HashMap<PathBuf, SpecWeight>;
 
 /// Remove all files in the directory only if the directory exists. Do nothing if not.
 ///
@@ -59,34 +57,19 @@ pub fn create_file_with_dir(weights_json: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Create weights for parallel computing based on the ratio of an execution time to the total time
-#[allow(dead_code)]
-fn generate_weights(
-    spec_weights: &mut SpecWeights,
-    total_duration: Duration,
-    total_weight: TotalWeight,
-) {
-    for (_, spec_weight) in spec_weights.iter_mut() {
-        let ratio = (spec_weight.time.as_millis() / total_duration.as_millis()) as u64;
-        spec_weight.weight = ((ratio * total_weight) as f64).floor() as u64;
+pub fn generate_spec_weights(test_results: &CyRunResults, total_duration: u16) -> SpecWeights {
+    let mut spec_weights: SpecWeights = HashMap::new();
+    let total_weight: u16 = (test_results.len() * 10).try_into().unwrap();
+
+    for (path, test_result) in test_results {
+        let spec_weight = SpecWeight {
+            time: test_result.duration,
+            weight: (test_result.duration / total_duration) * total_weight,
+        };
+        spec_weights.insert(path.to_path_buf(), spec_weight);
     }
-}
 
-#[test]
-fn generate_weights_test() {
-    let mut spec_weights: SpecWeights = HashMap::from([(
-        "sample",
-        SpecWeight {
-            time: Duration::from_millis(500),
-            weight: 0,
-        },
-    )]);
-
-    let total_weight: TotalWeight = 1000;
-
-    generate_weights(&mut spec_weights, Duration::from_millis(100), total_weight);
-
-    assert_eq!(spec_weights["sample"].weight, 5000);
+    spec_weights
 }
 
 /// Gather Cypress results from the result directory
