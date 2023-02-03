@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct SpecWeight {
     pub time: u16,
     pub weight: u16,
