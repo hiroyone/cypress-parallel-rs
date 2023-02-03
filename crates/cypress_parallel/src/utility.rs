@@ -8,8 +8,8 @@ use std::{
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SpecWeight {
-    pub time: u16,
-    pub weight: u16,
+    pub time: u32,
+    pub weight: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -20,7 +20,7 @@ pub struct TestResult {
     pub pending: u16,
     pub failures: u16,
     pub start: String,
-    pub duration: u16,
+    pub duration: u32,
     pub file: PathBuf,
 }
 
@@ -57,14 +57,14 @@ pub fn create_file_with_dir(weights_json: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn generate_spec_weights(test_results: &CyRunResults, total_duration: u16) -> SpecWeights {
+pub fn generate_spec_weights(test_results: &CyRunResults, total_duration: u32) -> SpecWeights {
     let mut spec_weights: SpecWeights = HashMap::new();
-    let total_weight: u16 = (test_results.len() * 10).try_into().unwrap();
+    let total_weight: u32 = (test_results.len() * 10).try_into().unwrap();
 
     for (path, test_result) in test_results {
         let spec_weight = SpecWeight {
             time: test_result.duration,
-            weight: (test_result.duration / total_duration) * total_weight,
+            weight: (test_result.duration * total_weight) / total_duration,
         };
         spec_weights.insert(path.to_path_buf(), spec_weight);
     }

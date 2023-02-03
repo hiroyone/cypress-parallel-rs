@@ -8,14 +8,14 @@ pub struct TotalResult {
     pub tests: u16,
     pub passes: u16,
     pub failures: u16,
-    pub duration: u16,
+    pub duration: u32,
     pub pending: u16,
 }
 
 #[derive(Default, Debug)]
 pub struct Report {
     pub path: PathBuf,
-    pub duration: u16,
+    pub duration: u32,
     pub tests: u16,
     pub passes: u16,
     pub failures: u16,
