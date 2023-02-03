@@ -5,6 +5,7 @@ use crate::threads;
 use crate::utility;
 use std::error::Error;
 use std::fs;
+use std::process;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
     let settings = config::Settings::global();
@@ -14,7 +15,8 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
     utility::clean_directory(results_path)?;
 
     let test_weight_threads = test_suites::get_test_weight_threads()?;
-    threads::parallel_execute_threads(test_weight_threads).await?;
+    let parallel_execution_duration =
+        threads::parallel_execute_threads(test_weight_threads).await?;
 
     let test_results = utility::collect_cy_results(results_path)?;
     log::trace!("Test Result is: {:?}", test_results);
@@ -32,7 +34,15 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
     // Todo: should be printed into the cli without debug
     log::trace!("The result table: {:?}", result_table);
 
-    utility::print_saved_time(total_result.duration, 30);
+    // Todo: stub value
+    let parallel_execution_duration = 300;
+    utility::print_saved_time(total_result.duration, parallel_execution_duration);
+
+    // Exits the error state if any failure exists
+    if total_result.failures > 0 {
+        eprintln!("{} test failures!", total_result.failures);
+        process::exit(1);
+    }
 
     Ok(())
 }

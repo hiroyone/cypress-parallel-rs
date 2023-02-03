@@ -194,7 +194,7 @@ pub async fn execute_thread(thread: &Thread, index: u64) -> Result<ExitStatus> {
 /// # Errors
 ///
 /// This function will return an error if running multiple threads fails.
-pub async fn parallel_execute_threads(test_weight_threads: Vec<Thread>) -> Result<()> {
+pub async fn parallel_execute_threads(test_weight_threads: Vec<Thread>) -> Result<u64> {
     log::info!("Execute threads in parallel.");
     let handles: Vec<JoinHandle<Result<ExitStatus>>> = test_weight_threads
         .into_iter()
@@ -211,10 +211,12 @@ pub async fn parallel_execute_threads(test_weight_threads: Vec<Thread>) -> Resul
         // Todo: remove double questions and return errors
         handle.await??;
     }
+
+    let parallel_execution_duration = start.elapsed().as_secs();
     log::info!(
         "It took {} seconds to execute tests.",
-        start.elapsed().as_secs()
+        parallel_execution_duration
     );
 
-    Ok(())
+    Ok(parallel_execution_duration)
 }
