@@ -38,7 +38,7 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
     let parallel_execution_duration = 300;
     utility::print_saved_time(total_result.duration, parallel_execution_duration);
 
-    // Exits the error state if any failure exists
+    // Exits with the error state if any failure exists
     if total_result.failures > 0 {
         eprintln!("{} test failures!", total_result.failures);
         process::exit(1);
