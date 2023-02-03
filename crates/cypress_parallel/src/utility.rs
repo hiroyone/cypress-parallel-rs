@@ -93,3 +93,16 @@ pub fn collect_cy_results(results_path: &Path) -> Result<CyRunResults> {
 
     return Ok(results);
 }
+
+/// Print how much time it would have taken in total for a single thread and how much time this app saved
+pub fn print_saved_time(total_duration: u32, time_taken: u32) {
+    let saved_time = total_duration - time_taken;
+    let saved_time_percentage = (saved_time * 100) / total_duration;
+    print!(
+        "Total run time: {} secs, Executed in: {} secs, Saved: {} secs ~ {}%",
+        total_duration / 1000,
+        time_taken / 1000,
+        saved_time / 1000,
+        saved_time_percentage
+    )
+}
