@@ -32,5 +32,7 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
     // Todo: should be printed into the cli without debug
     log::trace!("The result table: {:?}", result_table);
 
+    utility::print_saved_time(total_result.duration, 30);
+
     Ok(())
 }
