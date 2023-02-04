@@ -78,7 +78,7 @@ fn create_reporter_config_file(path: &PathBuf) -> Result<()> {
     let settings = config::Settings::global();
     let reporter = &settings.reporter;
     let mut reporter_enabled: Vec<String> =
-        Vec::from(["cypress-parallel-rs/json-stream.reporter.js".into()]);
+        Vec::from(["cypress-parallel-rs/reporters/json-stream_reporter.rs".into()]);
 
     reporter_enabled.push(reporter.to_string());
 
