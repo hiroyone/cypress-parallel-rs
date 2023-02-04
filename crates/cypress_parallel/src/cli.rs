@@ -44,5 +44,8 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
         process::exit(1);
     }
 
+    // Note: in the future, it would be better to implement checking missing test results.
+    // check_missing_result()
+
     Ok(())
 }
