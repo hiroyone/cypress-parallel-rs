@@ -74,15 +74,15 @@ pub fn distribute_tests_by_weight(
     let default_weight = settings.default_weight;
 
     // Retrieve execution weights from the config file
-    let weights_json = Path::new(weights_json);
+    let weights_json_path = Path::new(weights_json);
 
     // Create parent dir and file if not exists
-    if !weights_json.is_file() {
-        utility::create_file_with_dir(weights_json)?;
+    if !weights_json_path.is_file() {
+        utility::create_file_with_dir(weights_json_path)?;
     }
 
-    let spec_weights_json = fs::read_to_string(weights_json)?;
-    let spec_weights: HashMap<&str, u16> = serde_json::from_str(&spec_weights_json)?;
+    let spec_weights_json = fs::read_to_string(weights_json_path)?;
+    let spec_weights: HashMap<&str, HashMap<&str, u16>> = serde_json::from_str(&spec_weights_json)?;
 
     // Create an ordered map for weights and test paths passed from the JSON file
     let mut ordered_test_dist = OrderedTestDist::new();
@@ -92,7 +92,7 @@ pub fn distribute_tests_by_weight(
         // if a weight is pre-defined in the weights_json file, then set its value as a spec_weight
         for spec_path in spec_weights.keys() {
             if file_path.ends_with(spec_path) {
-                spec_weight = spec_weights[spec_path];
+                spec_weight = spec_weights[spec_path]["weight"];
                 break;
             }
         }
