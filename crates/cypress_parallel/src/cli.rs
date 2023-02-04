@@ -31,8 +31,6 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
     fs::write(&settings.weights_json, spec_weights_json)?;
 
     let result_table = report::create_test_result_table(&total_result, &all_reports);
-    // Todo: should be printed into the cli without debug
-    log::trace!("The result table: {:?}", result_table);
 
     // Todo: stub value
     let parallel_execution_duration = 300;
